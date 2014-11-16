@@ -12,7 +12,8 @@ output:
 
 Load the necessary libraries.
 
-```{r load_libraries, warning = FALSE, message = FALSE}
+
+```r
 library(magrittr)
 library(dplyr)
 library(ggplot2)
@@ -29,7 +30,8 @@ intervals on the x-axis).
 * In addition, for each interval we calculate a pretty-print string
 as "hh:mm-hh:mm". This will be used for axis labels in the plots.
 
-```{r load_data}
+
+```r
 if (!file.exists("activity.csv")) {
   unzip("activity.zip")
 }
@@ -56,7 +58,8 @@ formatting <- data.frame(interval = unique(activity$interval)) %>%
 Histogram of the total number of (recorded) steps per day.
 We drop days with no observation, but keep days with partial observations.
 The totals for those days use 0 for missing observations.
-```{r raw_totals_histogram}
+
+```r
 totals <- activity %>%
   mutate(missing = is.na(steps)) %>%
   group_by(date) %>%
@@ -75,8 +78,11 @@ plot1 <- ggplot(totals, aes(x = steps)) +
 print(plot1)
 ```
 
+![plot of chunk raw_totals_histogram](figure/raw_totals_histogram-1.png) 
+
 Mean and median for the total number of steps:
-```{r raw_totols_summary, results = 'AsIs'}
+
+```r
 raw_total_mean <- mean(totals$steps)
 raw_total_median <- median(totals$steps)
 cat(paste0("Mean total steps per day:   ",
@@ -86,11 +92,17 @@ cat(paste0("Mean total steps per day:   ",
            "\n"))
 ```
 
+```
+## Mean total steps per day:   10766.19
+## Median total steps per day: 10765.00
+```
+
 ## What is the average daily activity pattern?
 
 Average daily number of (recored) steps in each time interval:
 
-```{r mean_activity_plot}
+
+```r
 avg_steps <- activity %>%
   group_by(interval) %>%
   summarise(mean_steps = mean(steps, na.rm = TRUE))
@@ -113,8 +125,11 @@ plot2 <- ggplot(merge(avg_steps, formatting),
 print(plot2)
 ```
 
+![plot of chunk mean_activity_plot](figure/mean_activity_plot-1.png) 
+
 Which 5-minute interval has the highest average activity?
-```{r highest_activity, results = 'AsIs'}
+
+```r
 with(merge(avg_steps, formatting),
      {
        max_index <- which.max(mean_steps)
@@ -122,13 +137,22 @@ with(merge(avg_steps, formatting),
      })
 ```
 
+```
+## 08:35-08:40
+```
+
 
 ## Imputing missing values
 
 How many rows have a missing value?
 
-```{r missing_values, results = "AsIs"}
+
+```r
 cat(paste0(sum(1 - complete.cases(activity)), "\n"))
+```
+
+```
+## 2304
 ```
 
 Our strategy for imputing missing values is the following: we use the
@@ -136,7 +160,8 @@ number of average number of steps for the given time interval, on the same
 day of the week. We do not average all days, since we suspect there are
 variations due to a different routine on different days of the week.
 
-```{r impute_values}
+
+```r
 # Table for days of the week
 days_table <- data.frame(date = unique(activity$date)) %>%
   mutate(weekday = wday(date, label = TRUE))
@@ -157,7 +182,8 @@ imputed_activity <- activity %>%
 
 Histogram of the (interpolated) total number of steps per day:
 
-```{r imputded_totals_histogram}
+
+```r
 imputed_totals <- imputed_activity %>%
   group_by(date) %>%
   summarise(steps = sum(steps, na.rm = TRUE))
@@ -168,8 +194,11 @@ plot3 <- ggplot(imputed_totals, aes(x = steps)) +
 print(plot3)
 ```
 
+![plot of chunk imputded_totals_histogram](figure/imputded_totals_histogram-1.png) 
+
 Mean and median for the imputed total number of steps:
-```{r imputed_totols_summary, results = 'AsIs'}
+
+```r
 imputed_total_mean <- mean(imputed_totals$steps)
 imputed_total_median <- median(imputed_totals$steps)
 cat(paste0("Mean total steps per day:   ",
@@ -179,8 +208,14 @@ cat(paste0("Mean total steps per day:   ",
            "\n"))
 ```
 
+```
+## Mean total steps per day:   10821.21
+## Median total steps per day: 11015.00
+```
+
 Difference in the mean and median due to the imputed values:
-```{r summary_difference, results = 'AsIs'}
+
+```r
 difference_mean = imputed_total_mean - raw_total_mean
 difference_median = imputed_total_median - raw_total_median
 cat(paste0("Change in the mean total steps per day:   ",
@@ -190,11 +225,17 @@ cat(paste0("Change in the mean total steps per day:   ",
            "\n"))
 ```
 
+```
+## Change in the mean total steps per day:   55.02
+## Change in the median total steps per day: 250.00
+```
+
 ## Are there differences in activity patterns between weekdays and weekends?
 
 Split the days into weekends and weekdays, and compute the mean steps per
 interval for each group:
-```{r weekend_split}
+
+```r
 weekends <- c("Sun", "Sat")
 
 # Table for the means split by type of day
@@ -209,7 +250,8 @@ split_means <- imputed_activity %>%
 
 Plot the averages:
 
-```{r weekend_split_mean_activity_plot}
+
+```r
 plot4 <- ggplot(merge(split_means, formatting),
                 aes(x = start, y = mean_steps)) +
   geom_line() +
@@ -218,6 +260,8 @@ plot4 <- ggplot(merge(split_means, formatting),
   interval_scale
 print(plot4)
 ```
+
+![plot of chunk weekend_split_mean_activity_plot](figure/weekend_split_mean_activity_plot-1.png) 
 
 We see that on weekdays there is a huge peak in activity before 9am,
 which is not seen during weekends. On the other hand, the overall activity
@@ -228,6 +272,38 @@ later in the day is higher on weekends than on weekdays.
 For complete reproduciblity, we report details about the operating
 system, locale, and versions of R and R packages:
 
-```{r session-info, results = "AsIs"}
+
+```r
 sessionInfo()
+```
+
+```
+## R version 3.1.2 (2014-10-31)
+## Platform: x86_64-pc-linux-gnu (64-bit)
+## 
+## locale:
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] lubridate_1.3.3 ggplot2_1.0.0   dplyr_0.3.0.2   magrittr_1.0.1 
+## [5] knitr_1.7       vimcom_1.0-0    colorout_1.0-3 
+## 
+## loaded via a namespace (and not attached):
+##  [1] assertthat_0.1     colorspace_1.2-2   DBI_0.3.1         
+##  [4] dichromat_2.0-0    digest_0.6.4       evaluate_0.5.5    
+##  [7] formatR_1.0        grid_3.1.2         gtable_0.1.2      
+## [10] labeling_0.1       lazyeval_0.1.9     markdown_0.7.4    
+## [13] MASS_7.3-35        memoise_0.2.1      mime_0.2          
+## [16] munsell_0.4.2      parallel_3.1.2     plyr_1.8.1        
+## [19] proto_0.3-10       RColorBrewer_1.0-5 Rcpp_0.11.3       
+## [22] reshape2_1.4       scales_0.2.3       stringr_0.6.2     
+## [25] tools_3.1.2
 ```
